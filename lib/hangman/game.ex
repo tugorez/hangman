@@ -11,25 +11,32 @@ defmodule Hangman.Game do
   end
 
   def make_move(game = %Game{game_state: state}, _guess) when state in [:won, :lost] do
-    {game, tally(game)}
+    game
   end
 
   def make_move(game, guess) do
-    game = accept_move(game, guess, MapSet.member?(game.used, guess))
-    {game, tally(game)}
+    accept_move(game, guess, MapSet.member?(game.used, guess))
   end
 
-  def accept_move(game, _guess, _already_guessed = true) do
+  def tally(game) do
+    %{
+      game_state: game.game_state,
+      turns_left: game.turns_left,
+      letters: game.letters |> reveal_guessed(game.used)
+    }
+  end
+
+  defp accept_move(game, _guess, _already_guessed = true) do
     Map.put(game, :game_state, :already_used)
   end
 
-  def accept_move(game, guess, _already_guessed = false) do
+  defp accept_move(game, guess, _already_guessed = false) do
     game
     |> Map.put(:used, MapSet.put(game.used, guess))
     |> score_guess(Enum.member?(game.letters, guess))
   end
 
-  def score_guess(game, _good_guess = true) do
+  defp score_guess(game, _good_guess = true) do
     new_state =
       MapSet.new(game.letters)
       |> MapSet.subset?(game.used)
@@ -38,27 +45,29 @@ defmodule Hangman.Game do
     Map.put(game, :game_state, new_state)
   end
 
-  def score_guess(game = %Game{turns_left: 1}, _good_guess = false) do
+  defp score_guess(game = %Game{turns_left: 1}, _good_guess = false) do
     game
     |> Map.put(:turns_left, 0)
     |> Map.put(:game_state, :lost)
   end
 
-  def score_guess(game = %Game{turns_left: turns_left}, _good_guess = false) do
+  defp score_guess(game = %Game{turns_left: turns_left}, _good_guess = false) do
     game
     |> Map.put(:turns_left, turns_left - 1)
     |> Map.put(:game_state, :bad_guess)
   end
 
-  def tally(_game) do
-    123
+  defp reveal_guessed(letters, used) do
+    Enum.map(letters, fn letter ->
+      if Enum.member?(used, letter), do: letter, else: "_"
+    end)
   end
 
-  def maybe_won(true) do
+  defp maybe_won(true) do
     :won
   end
 
-  def maybe_won(_) do
+  defp maybe_won(_) do
     :good_guess
   end
 end

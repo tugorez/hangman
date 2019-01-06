@@ -11,31 +11,28 @@ defmodule GameTest do
 
   test "state isn't changed for :won game" do
     game = Game.new_game() |> Map.put(:game_state, :won)
-    assert {^game, _} = Game.make_move(game, "x")
+    assert ^game = Game.make_move(game, "x")
   end
 
   test "state isn't changed for :lost game" do
     game = Game.new_game() |> Map.put(:game_state, :lost)
-    assert {^game, _} = Game.make_move(game, "x")
+    assert ^game = Game.make_move(game, "x")
   end
 
   test "first occurrence of letter is not already used" do
-    game = Game.new_game()
-    {game, _tally} = Game.make_move(game, "x")
+    game = Game.new_game() |> Game.make_move("x")
     assert game.game_state != :already_used
   end
 
   test "second occurrence of letter is already used" do
-    game = Game.new_game()
-    {game, _tally} = Game.make_move(game, "x")
+    game = Game.new_game() |> Game.make_move("x")
     assert game.game_state != :already_used
-    {game, _tally} = Game.make_move(game, "x")
+    game = Game.make_move(game, "x")
     assert game.game_state == :already_used
   end
 
   test "a good guess is recognized" do
-    game = Game.new_game("wibble")
-    {game, _tally} = Game.make_move(game, "w")
+    game = Game.new_game("wibble") |> Game.make_move("w")
     assert game.game_state == :good_guess
     assert game.turns_left == 7
   end
@@ -52,7 +49,7 @@ defmodule GameTest do
     ]
 
     Enum.reduce(moves, initial_state, fn {guess, expected_state}, game ->
-      {game, _tally} = Game.make_move(game, guess)
+      game = Game.make_move(game, guess)
       assert game.game_state == expected_state
       assert game.turns_left == 7
       game
@@ -60,33 +57,32 @@ defmodule GameTest do
   end
 
   test "a bad guess is recognized" do
-    game = Game.new_game("wibble")
-    {game, _tally} = Game.make_move(game, "d")
+    game = Game.new_game("wibble") |> Game.make_move("d")
     assert game.game_state == :bad_guess
     assert game.turns_left == 6
   end
 
   test "lost game is recognized" do
     game = Game.new_game("wibble")
-    {game, _tally} = Game.make_move(game, "a")
+    game = Game.make_move(game, "a")
     assert game.game_state == :bad_guess
     assert game.turns_left == 6
-    {game, _tally} = Game.make_move(game, "c")
+    game = Game.make_move(game, "c")
     assert game.game_state == :bad_guess
     assert game.turns_left == 5
-    {game, _tally} = Game.make_move(game, "d")
+    game = Game.make_move(game, "d")
     assert game.game_state == :bad_guess
     assert game.turns_left == 4
-    {game, _tally} = Game.make_move(game, "f")
+    game = Game.make_move(game, "f")
     assert game.game_state == :bad_guess
     assert game.turns_left == 3
-    {game, _tally} = Game.make_move(game, "g")
+    game = Game.make_move(game, "g")
     assert game.game_state == :bad_guess
     assert game.turns_left == 2
-    {game, _tally} = Game.make_move(game, "h")
+    game = Game.make_move(game, "h")
     assert game.game_state == :bad_guess
     assert game.turns_left == 1
-    {game, _tally} = Game.make_move(game, "j")
+    game = Game.make_move(game, "j")
     assert game.game_state == :lost
     assert game.turns_left == 0
   end
